@@ -193,3 +193,26 @@ rustdoc-args = ["--cfg", "docsrs"]
 [package.metadata.playground]
 features = ["bundled-full"]
 all-features = false
+
+#most are probably not needed
+[patch.crates-io]
+c-kzg = { git = "https://github.com/cristibctr/c-kzg-4844", branch = "v1.0.3"}
+hostname = { git = "https://github.com/cristibctr/hostname", branch = "master"}
+libc = { git = "https://github.com/cristibctr/libc-0.2.169", branch = "wasix-0.2.169" }
+metrics-process = { git = "https://github.com/cristibctr/rs-metrics-process", branch = "feat/add-wasm-support" }
+getrandom = { git = "https://github.com/cristibctr/getrandom", branch = "feat/add-wasm-support-0.3.1" }
+procfs = { git = "https://github.com/cristibctr/procfs", branch = "feat/add-wasm-support" }
+crossterm = { git = "https://github.com/cristibctr/crossterm", branch = "feat/add-wasm-support" }
+mio = { git = "https://github.com/cristibctr/mio", branch = "v1.0.1" }
+parking_lot = { git = "https://github.com/cristibctr/parking_lot", branch = "master" }
+reqwest = { git = "https://github.com/cristibctr/reqwest", branch = "master" }
+hyper-util = { git = "https://github.com/cristibctr/hyper-util", branch = "master" }
+discv5 = { git = "https://github.com/cristibctr/discv5", rev = "v0.8.1" }
+interprocess = { git = "https://github.com/cristibctr/interprocess", branch = "main" }
+hickory-resolver = { git = "https://github.com/cristibctr/hickory-dns", branch = "v0.25.0-alpha.5" }
+futures-utils-wasm = { git = "https://github.com/cristibctr/futures-utils-wasm", branch = "main" }
+rustls-native-certs = { git = "https://github.com/cristibctr/rustls-native-certs", branch = "main"}
+wait-timeout = { git = "https://github.com/cristibctr/wait-timeout", branch = "main"}
+rusty-fork = {git = "https://github.com/cristibctr/rusty-fork", branch = "master"}
+tempfile = {git = "https://github.com/cristibctr/tempfile", branch = "v3.16.0"}
+home = {git = "https://github.com/cristibctr/cargo", branch = "home-v0.5.10"}

@@ -36,7 +36,14 @@ fn copy_bindings<T: AsRef<Path>>(dir: &str, bindgen_name: &str, out_path: T) {
     std::fs::copy(from, out_path).expect("Could not copy bindings to output directory");
 }
 
+fn is_vendor(vendor_name: &str) -> bool {
+    println!("findme: {} {}", vendor_name, std::env::var("CARGO_CFG_TARGET_VENDOR").unwrap());
+    std::env::var("CARGO_CFG_TARGET_VENDOR").map_or(false, |v| v == vendor_name)
+}
+
 fn main() {
+    #[cfg(target_vendor = "wasmer")]
+    println!("I'm groot, uhh I mean wasmer");
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_path = Path::new(&out_dir).join("bindgen.rs");
     if cfg!(feature = "in_gecko") {
@@ -95,7 +102,7 @@ mod build_bundled {
     use std::ffi::OsString;
     use std::path::{Path, PathBuf};
 
-    use super::{is_compiler, win_target};
+    use super::{is_compiler, is_vendor, win_target};
 
     pub fn main(out_dir: &str, out_path: &Path) {
         let lib_name = super::lib_name();
@@ -239,7 +246,7 @@ mod build_bundled {
         if !win_target() {
             cfg.flag("-DHAVE_LOCALTIME_R");
         }
-        if env::var("TARGET").is_ok_and(|v| v.starts_with("wasm32-wasi")) {
+        if env::var("TARGET").is_ok_and(|v| v.starts_with("wasm32-wasi") || is_vendor("wasmer")) {
             cfg.flag("-USQLITE_THREADSAFE")
                 .flag("-DSQLITE_THREADSAFE=0")
                 // https://github.com/rust-lang/rust/issues/74393
