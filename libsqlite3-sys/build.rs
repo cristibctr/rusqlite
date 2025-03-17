@@ -36,14 +36,11 @@ fn copy_bindings<T: AsRef<Path>>(dir: &str, bindgen_name: &str, out_path: T) {
     std::fs::copy(from, out_path).expect("Could not copy bindings to output directory");
 }
 
-fn is_vendor(vendor_name: &str) -> bool {
-    println!("findme: {} {}", vendor_name, std::env::var("CARGO_CFG_TARGET_VENDOR").unwrap());
-    std::env::var("CARGO_CFG_TARGET_VENDOR").map_or(false, |v| v == vendor_name)
-}
-
 fn main() {
-    #[cfg(target_vendor = "wasmer")]
-    println!("I'm groot, uhh I mean wasmer");
+    env::set_var("CARGO_CFG_TARGET_ARCH", "wasm32");
+    env::set_var("CARGO_CFG_TARGET_OS", "wasi");
+    env::set_var("CARGO_CFG_TARGET_VENDOR", "wasmer");
+    env::set_var("TARGET", "wasm32-wasmer-wasi");
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_path = Path::new(&out_dir).join("bindgen.rs");
     if cfg!(feature = "in_gecko") {
@@ -102,7 +99,7 @@ mod build_bundled {
     use std::ffi::OsString;
     use std::path::{Path, PathBuf};
 
-    use super::{is_compiler, is_vendor, win_target};
+    use super::{is_compiler, win_target};
 
     pub fn main(out_dir: &str, out_path: &Path) {
         let lib_name = super::lib_name();
@@ -254,13 +251,11 @@ mod build_bundled {
             cfg.flag("-DHAVE_LOCALTIME_R");
         }
         // Target wasm32-wasi can't compile the default VFS
-        if env::var("TARGET").map_or(false, |v| v == "wasm32-wasi") || is_vendor("wasmer") {
-            cfg.flag("-DSQLITE_OS_OTHER")
-                // https://github.com/rust-lang/rust/issues/74393
-                .flag("-DLONGDOUBLE_TYPE=double");
-            if cfg!(feature = "wasm32-wasi-vfs") {
-                cfg.file("sqlite3/wasm32-wasi-vfs.c");
-            }
+        cfg.flag("-DSQLITE_OS_OTHER")
+            // https://github.com/rust-lang/rust/issues/74393
+            .flag("-DLONGDOUBLE_TYPE=double");
+        if cfg!(feature = "wasm32-wasi-vfs") {
+            cfg.file("sqlite3/wasm32-wasi-vfs.c");
         }
         if cfg!(feature = "unlock_notify") {
             cfg.flag("-DSQLITE_ENABLE_UNLOCK_NOTIFY");
