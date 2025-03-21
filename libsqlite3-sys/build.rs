@@ -123,6 +123,8 @@ mod build_bundled {
         println!("cargo:rerun-if-changed=sqlite3/wasm32-wasi-vfs.c");
         let mut cfg = cc::Build::new();
         cfg.file(format!("{lib_name}/sqlite3.c"))
+            .flag("-matomics")
+            .flag("-mbulk-memory")
             .flag("-DSQLITE_CORE")
             .flag("-DSQLITE_DEFAULT_FOREIGN_KEYS=1")
             .flag("-DSQLITE_ENABLE_API_ARMOR")
