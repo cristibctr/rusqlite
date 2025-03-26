@@ -19,6 +19,7 @@ pub struct LoadExtensionGuard<'conn> {
     conn: &'conn Connection,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl LoadExtensionGuard<'_> {
     /// Attempt to enable loading extensions. Loading extensions will be
     /// disabled when this guard goes out of scope. Cannot be meaningfully
@@ -34,6 +35,23 @@ impl LoadExtensionGuard<'_> {
     pub unsafe fn new(conn: &Connection) -> Result<LoadExtensionGuard<'_>> {
         conn.load_extension_enable()
             .map(|_| LoadExtensionGuard { conn })
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl LoadExtensionGuard<'_> {
+    /// WASM target doesn't support dynamic loading of extensions.
+    /// This implementation will always return an error.
+    ///
+    /// # Safety
+    ///
+    /// No safety concerns as this always returns an error on WASM.
+    #[inline]
+    pub unsafe fn new(_conn: &Connection) -> Result<LoadExtensionGuard<'_>> {
+        Err(crate::Error::SqliteFailure(
+            crate::ffi::Error::new(crate::ffi::SQLITE_ERROR),
+            Some("load_extension is not supported on WASM targets".to_string()),
+        ))
     }
 }
 

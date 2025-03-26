@@ -183,13 +183,22 @@ impl InnerConnection {
     }
 
     #[inline]
-    #[cfg(feature = "load_extension")]
+    #[cfg(all(feature = "load_extension", not(target_arch = "wasm32")))]
     pub unsafe fn enable_load_extension(&mut self, onoff: c_int) -> Result<()> {
         let r = ffi::sqlite3_enable_load_extension(self.db, onoff);
         self.decode_result(r)
     }
 
-    #[cfg(feature = "load_extension")]
+    #[inline]
+    #[cfg(all(feature = "load_extension", target_arch = "wasm32"))]
+    pub unsafe fn enable_load_extension(&mut self, _onoff: c_int) -> Result<()> {
+        Err(Error::SqliteFailure(
+            ffi::Error::new(ffi::SQLITE_ERROR),
+            Some("load_extension is not supported on WASM targets".to_string()),
+        ))
+    }
+
+    #[cfg(all(feature = "load_extension", not(target_arch = "wasm32")))]
     pub unsafe fn load_extension(
         &self,
         dylib_path: &Path,
@@ -210,6 +219,18 @@ impl InnerConnection {
             ffi::sqlite3_free(errmsg.cast::<std::os::raw::c_void>());
             Err(error_from_sqlite_code(r, Some(message)))
         }
+    }
+    
+    #[cfg(all(feature = "load_extension", target_arch = "wasm32"))]
+    pub unsafe fn load_extension(
+        &self,
+        _dylib_path: &Path,
+        _entry_point: Option<&str>,
+    ) -> Result<()> {
+        Err(Error::SqliteFailure(
+            ffi::Error::new(ffi::SQLITE_ERROR),
+            Some("load_extension is not supported on WASM targets".to_string()),
+        ))
     }
 
     #[inline]

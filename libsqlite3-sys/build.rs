@@ -41,6 +41,10 @@ fn main() {
     env::set_var("CARGO_CFG_TARGET_OS", "wasi");
     env::set_var("CARGO_CFG_TARGET_VENDOR", "wasmer");
     env::set_var("TARGET", "wasm32-wasmer-wasi");
+    
+    // For WASM targets, explicitly disable the load extension functionality
+    println!("cargo:rustc-cfg=wasm32_target");
+    
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_path = Path::new(&out_dir).join("bindgen.rs");
     if cfg!(feature = "in_gecko") {
@@ -252,11 +256,16 @@ mod build_bundled {
             .flag("-D_WASI_EMULATED_MMAN")
             .flag("-D_WASI_EMULATED_GETPID")
             .flag("-D_WASI_EMULATED_SIGNAL")
-            .flag("-D_WASI_EMULATED_PROCESS_CLOCKS");
+            .flag("-D_WASI_EMULATED_PROCESS_CLOCKS")
+            .flag("-DSQLITE_OMIT_LOAD_EXTENSION=1");
 
         if cfg!(feature = "wasm32-wasi-vfs") {
             cfg.file("sqlite3/wasm32-wasi-vfs.c");
         }
+        
+        // Include our stub implementation for the load_extension API in WASM
+        cfg.file("sqlite3/wasm32-load-extension-stub.c")
+           .flag("-D__WASM32__=1");
         if cfg!(feature = "unlock_notify") {
             cfg.flag("-DSQLITE_ENABLE_UNLOCK_NOTIFY");
         }
